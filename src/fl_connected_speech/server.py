@@ -30,7 +30,7 @@ fl.server.start_server(
     server_address="0.0.0.0:8080",
     config=fl.server.ServerConfig(num_rounds=ROUNDS),
     strategy=fl.server.strategy.FedAvg(evaluate_metrics_aggregation_fn=get_weighted_av_metrics),
-    grpc_max_message_length=int(1e10),
+    grpc_max_message_length=int(2e9),
 )
 # TODO potentially add some mlflow logging
 # TODO save the model

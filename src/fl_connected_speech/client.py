@@ -164,5 +164,5 @@ load_dotenv()
 fl.client.start_numpy_client(
     server_address=os.getenv("SERVER_ADDRESS"),
     client=ClassificationClient(),
-    grpc_max_message_length=int(1e10),
+    grpc_max_message_length=int(2e9),
 )
