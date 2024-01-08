@@ -1,6 +1,8 @@
 datasets
 evaluate
 flwr
+mlflow
+numpy
 python_dotenv
 scikit-learn
 torch
