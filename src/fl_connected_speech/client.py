@@ -6,6 +6,7 @@ import evaluate
 import flwr as fl
 import torch
 from datasets import load_dataset, concatenate_datasets, ClassLabel
+from dotenv import load_dotenv
 from torch.utils.data import DataLoader
 from transformers import (
     AdamW,
@@ -158,5 +159,6 @@ class ClassificationClient(fl.client.NumPyClient):
 
 
 # Start client (training and evaluation)
-# TODO server address
-fl.client.start_numpy_client(server_address="127.0.0.1:8080", client=ClassificationClient())
+# Get the server address from the .env file
+load_dotenv()
+fl.client.start_numpy_client(server_address=os.getenv("SERVER_ADDRESS"), client=ClassificationClient())
