@@ -4,8 +4,7 @@ import flwr as fl
 from flwr.common import Metrics
 
 # Parameters
-# TODO increase the number of rounds
-ROUNDS = 3
+ROUNDS = 5
 
 
 # Add a function that aggregates all metrics
@@ -31,6 +30,7 @@ fl.server.start_server(
     server_address="0.0.0.0:8080",
     config=fl.server.ServerConfig(num_rounds=ROUNDS),
     strategy=fl.server.strategy.FedAvg(evaluate_metrics_aggregation_fn=get_weighted_av_metrics),
+    grpc_max_message_length=int(1e10),
 )
 # TODO potentially add some mlflow logging
 # TODO save the model

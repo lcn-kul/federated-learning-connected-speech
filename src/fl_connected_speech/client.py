@@ -16,7 +16,7 @@ from transformers import (
 )
 
 # Parameters
-MODEL_BASE = "Unbabel/xlm-roberta-comet-small"  # TODO Replace with a more sensible model that is smaller than 512MB
+MODEL_BASE = "xlm-roberta-base"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BATCH_SIZE = 8
 EPOCHS = 5
@@ -161,4 +161,8 @@ class ClassificationClient(fl.client.NumPyClient):
 # Start client (training and evaluation)
 # Get the server address from the .env file
 load_dotenv()
-fl.client.start_numpy_client(server_address=os.getenv("SERVER_ADDRESS"), client=ClassificationClient())
+fl.client.start_numpy_client(
+    server_address=os.getenv("SERVER_ADDRESS"),
+    client=ClassificationClient(),
+    grpc_max_message_length=int(1e10),
+)
