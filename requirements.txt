@@ -1,5 +1,7 @@
 datasets
 evaluate
 flwr
+python_dotenv
+scikit-learn
 torch
 transformers
