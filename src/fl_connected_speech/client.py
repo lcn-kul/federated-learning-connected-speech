@@ -161,8 +161,8 @@ class ClassificationClient(fl.client.NumPyClient):
 # Start client (training and evaluation)
 # Get the server address from the .env file
 load_dotenv()
-fl.client.start_numpy_client(
+fl.client.start_client(
     server_address=os.getenv("SERVER_ADDRESS"),
-    client=ClassificationClient(),
+    client=ClassificationClient().to_client(),
     grpc_max_message_length=int(2e9),
 )
