@@ -12,7 +12,7 @@ from transformers import AutoModelForSequenceClassification
 
 # Parameters
 ROUNDS = 5
-MODEL_BASE = "xlm-roberta-base"
+MODEL_BASE = "Unbabel/xlm-roberta-comet-small"
 LABELS = sorted(os.listdir("../../data/input"))
 
 # Initialize mlflow
@@ -24,7 +24,6 @@ mlflow.set_experiment(experiment_name=f"federated_learning_connected_speech")
 cls_model = AutoModelForSequenceClassification.from_pretrained(
     MODEL_BASE,
     num_labels=len(LABELS),
-    torch_dtype=torch.float16,
 )
 model_output_dir = os.getenv("OUTPUT_DIR")
 

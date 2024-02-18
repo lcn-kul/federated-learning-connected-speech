@@ -16,7 +16,7 @@ from transformers import (
 )
 
 # Parameters
-MODEL_BASE = "xlm-roberta-base"
+MODEL_BASE = "Unbabel/xlm-roberta-comet-small"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BATCH_SIZE = 8
 EPOCHS = 5
@@ -130,7 +130,6 @@ def test(model, test_loader):
 cls_model = AutoModelForSequenceClassification.from_pretrained(
     MODEL_BASE,
     num_labels=len(LABELS),
-    torch_dtype=torch.float16,
 ).to(DEVICE)
 tr_loader, te_loader = load_data()
 
@@ -166,7 +165,7 @@ class ClassificationClient(fl.client.NumPyClient):
 # Get the server address from the .env file
 load_dotenv()
 fl.client.start_client(
-    server_address=os.getenv("SERVER_ADDRESS"),
+    server_address=os.getenv("SERVER_ADDRESS"),  # TODO set min_available_clients=3 or so
     client=ClassificationClient().to_client(),
     grpc_max_message_length=int(2e9),
 )
