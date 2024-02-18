@@ -13,6 +13,7 @@ from transformers import AutoModelForSequenceClassification
 # Parameters
 ROUNDS = 5
 MODEL_BASE = "Unbabel/xlm-roberta-comet-small"
+N_CLIENTS = int(os.getenv("N_CLIENTS"))  # Number of clients that need to be available to start the round
 LABELS = sorted(os.listdir("../../data/input"))
 
 # Initialize mlflow
@@ -86,6 +87,8 @@ with mlflow.start_run(run_name="picture_description"):
         config=fl.server.ServerConfig(num_rounds=ROUNDS),
         strategy=SaveModelStrategy(
             evaluate_metrics_aggregation_fn=get_weighted_av_metrics,
+            fraction_evaluate=1.0,
+            min_available_clients=N_CLIENTS,
         ),
         grpc_max_message_length=int(2e9),
     )

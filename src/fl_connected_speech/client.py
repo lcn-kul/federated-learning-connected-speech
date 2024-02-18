@@ -165,7 +165,7 @@ class ClassificationClient(fl.client.NumPyClient):
 # Get the server address from the .env file
 load_dotenv()
 fl.client.start_client(
-    server_address=os.getenv("SERVER_ADDRESS"),  # TODO set min_available_clients=3 or so
+    server_address=os.getenv("SERVER_ADDRESS"),
     client=ClassificationClient().to_client(),
     grpc_max_message_length=int(2e9),
 )
