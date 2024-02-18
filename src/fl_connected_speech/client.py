@@ -127,7 +127,11 @@ def test(model, test_loader):
 
 
 # Initialize model and data loaders
-cls_model = AutoModelForSequenceClassification.from_pretrained(MODEL_BASE, num_labels=len(LABELS)).to(DEVICE)
+cls_model = AutoModelForSequenceClassification.from_pretrained(
+    MODEL_BASE,
+    num_labels=len(LABELS),
+    torch_dtype=torch.float16,
+).to(DEVICE)
 tr_loader, te_loader = load_data()
 
 

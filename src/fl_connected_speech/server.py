@@ -21,7 +21,11 @@ mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
 mlflow.set_experiment(experiment_name=f"federated_learning_connected_speech")
 
 # Load a model (only used to get the parameter state dict)
-cls_model = AutoModelForSequenceClassification.from_pretrained(MODEL_BASE, num_labels=len(LABELS))
+cls_model = AutoModelForSequenceClassification.from_pretrained(
+    MODEL_BASE,
+    num_labels=len(LABELS),
+    torch_dtype=torch.float16,
+)
 model_output_dir = os.getenv("OUTPUT_DIR")
 
 
@@ -79,7 +83,7 @@ def get_weighted_av_metrics(metrics: List[Tuple[int, Metrics]]) -> Metrics:
 # Start server
 with mlflow.start_run(run_name="picture_description"):
     fl.server.start_server(
-        server_address="0.0.0.0:8080",
+        server_address="0.0.0.0:25565",
         config=fl.server.ServerConfig(num_rounds=ROUNDS),
         strategy=SaveModelStrategy(
             evaluate_metrics_aggregation_fn=get_weighted_av_metrics,
