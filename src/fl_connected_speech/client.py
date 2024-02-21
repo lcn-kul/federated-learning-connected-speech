@@ -16,6 +16,7 @@ from transformers import (
 )
 
 # Parameters
+load_dotenv(dotenv_path="../../server_details.env")
 MODEL_BASE = "Unbabel/xlm-roberta-comet-small"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BATCH_SIZE = 8
@@ -162,8 +163,7 @@ class ClassificationClient(fl.client.NumPyClient):
 
 
 # Start client (training and evaluation)
-# Get the server address from the .env file
-load_dotenv()
+# Get the server address from the server_details.env file
 fl.client.start_client(
     server_address=os.getenv("SERVER_ADDRESS"),
     client=ClassificationClient().to_client(),

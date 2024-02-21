@@ -11,13 +11,13 @@ from flwr.server.client_proxy import ClientProxy
 from transformers import AutoModelForSequenceClassification
 
 # Parameters
+load_dotenv(dotenv_path="../../server_details.env")
 ROUNDS = 5
 MODEL_BASE = "Unbabel/xlm-roberta-comet-small"
 N_CLIENTS = int(os.getenv("N_CLIENTS"))  # Number of clients that need to be available to start the round
 LABELS = sorted(os.listdir("../../data/input"))
 
 # Initialize mlflow
-load_dotenv()
 mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
 mlflow.set_experiment(experiment_name=f"federated_learning_connected_speech")
 
