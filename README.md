@@ -18,7 +18,7 @@ The easiest way to get Python and a virtual environment manager is by installing
 2. Create a virtual environment using the ```requirements.txt``` file
    * Either open a terminal or use the Anaconda prompt (Windows) and in the project directory (```your-path/federated-learning-connected-speech```) create your environment (e.g., ```conda create -n fl-cs python=3.11```) and install the requirements (e.g, ```pip install -r requirements.txt```)
 3. Add your private files to the project (they will not be uploaded to GitHub)
-   * Add the ```server_details.env``` file with the server address and port (shared beforehand) int the project directory (```your-path/federated-learning-connected-speech```)
+   * Add the ```server_details.env``` file with the server address and port (shared beforehand) in the project directory (```your-path/federated-learning-connected-speech```)
    * Add your disease-group specific subject files to the respective sub-folders in ```your-path/federated-learning-connected-speech/data/input```. Each subject should have a separate ```.txt``` file, the file names do not matter as long as they do not contain the terms "train"/"test"/"val".
 
 ## Starting the Client
