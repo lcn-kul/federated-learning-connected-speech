@@ -20,7 +20,7 @@ load_dotenv(dotenv_path="../../server_details.env")
 MODEL_BASE = "Unbabel/xlm-roberta-comet-small"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BATCH_SIZE = 8
-EPOCHS = 5
+EPOCHS = 10
 METRICS = ["accuracy", "precision", "recall", "f1"]
 LABELS = sorted(os.listdir("../../data/input"))
 label_column = ClassLabel(names=LABELS)
