@@ -12,7 +12,7 @@ from transformers import AutoModelForSequenceClassification
 
 # Parameters
 load_dotenv(dotenv_path="../../server_details.env")
-ROUNDS = 5
+ROUNDS = 10
 MODEL_BASE = "Unbabel/xlm-roberta-comet-small"
 N_CLIENTS = int(os.getenv("N_CLIENTS"))  # Number of clients that need to be available to start the round
 LABELS = sorted(os.listdir("../../data/input"))
