@@ -23,6 +23,9 @@ BATCH_SIZE = 8
 EPOCHS = 10
 METRICS = ["accuracy", "precision", "recall", "f1"]
 LABELS = sorted(os.listdir("../../data/input"))
+# Find out the OS that the client is running on
+DEFAULT_ENCODING = "ISO-8859-1" if os.name == "nt" else "utf-8"
+
 label_column = ClassLabel(names=LABELS)
 
 
@@ -37,6 +40,8 @@ def load_data():
         label_specific_dataset = load_dataset(
             "text",
             data_dir=f"../../data/input/{label}",
+            download_mode="force_redownload",
+            encoding=DEFAULT_ENCODING,
         )["train"]
         # Add 'label' column to each split
         label_specific_dataset = label_specific_dataset.add_column(
