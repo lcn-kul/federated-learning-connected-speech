@@ -13,9 +13,10 @@ from transformers import AutoModelForSequenceClassification
 # Parameters
 load_dotenv(dotenv_path="../../server_details.env")
 ROUNDS = 10
-MODEL_BASE = "Unbabel/xlm-roberta-comet-small"
+MODEL_BASE = "nreimers/mMiniLMv2-L6-H384-distilled-from-XLMR-Large"
 N_CLIENTS = int(os.getenv("N_CLIENTS"))  # Number of clients that need to be available to start the round
-LABELS = sorted(os.listdir("../../data/input"))
+# Invert the labels so that healthy = 0
+LABELS = sorted(os.listdir("../../data/input"))[::-1]
 
 # Initialize mlflow
 mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
@@ -79,6 +80,9 @@ def get_weighted_av_metrics(metrics: List[Tuple[int, Metrics]]) -> Metrics:
 
     return final_metrics
 
+
+# Initialize a logger 
+fl.common.logger.configure(identifier="fl-cs", filename="../../data/output/server.log")
 
 # Start server
 with mlflow.start_run(run_name="picture_description"):

@@ -17,16 +17,18 @@ from transformers import (
 
 # Parameters
 load_dotenv(dotenv_path="../../server_details.env")
-MODEL_BASE = "Unbabel/xlm-roberta-comet-small"
+MODEL_BASE = "nreimers/mMiniLMv2-L6-H384-distilled-from-XLMR-Large"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BATCH_SIZE = 8
+# recall = sensitivity, precision = positive predictive value
+# precision of the negative class = negative predictive value
+# recall of the negative class = specificity
+METRICS = ["accuracy", "precision", "recall", "f1", "roc_auc", "npv", "specificity"]
+# Invert labels so that healthy = 0
+LABELS = sorted(os.listdir("../../data/input"))[::-1]
 EPOCHS = 10
-METRICS = ["accuracy", "precision", "recall", "f1"]
-LABELS = sorted(os.listdir("../../data/input"))
 # Find out the OS that the client is running on
 DEFAULT_ENCODING = "ISO-8859-1" if os.name == "nt" else "utf-8"
-
-label_column = ClassLabel(names=LABELS)
 
 
 def load_data():
@@ -115,19 +117,34 @@ def test(model, test_loader):
             outputs = model(**batch)
         logits = outputs.logits
         loss += outputs.loss.item()
+        probabilities_pos_class = torch.softmax(logits, axis=-1)[:, 1]
         predictions = torch.argmax(logits, dim=-1)
-        evaluations.append({"predictions": predictions, "references": batch["labels"]})
+        evaluations.append({"probs": probabilities_pos_class, "predictions": predictions, "references": batch["labels"]})
 
     loss /= len(test_loader.dataset)
     # Compute each metric
     for metric in METRICS:
-        metric_func = evaluate.load(metric)
-        for ev in evaluations:
-            metric_func.add_batch(predictions=ev["predictions"], references=ev["references"])
-        if metric == "accuracy":
-            all_metrics[metric] = metric_func.compute()[metric]
+        if metric == "npv":
+            metric_func = evaluate.load("precision")
+        elif metric == "specificity":
+            metric_func = evaluate.load("recall")
         else:
-            all_metrics[metric] = metric_func.compute(labels=range(len(LABELS)), average="micro")[metric]
+            metric_func = evaluate.load(metric)
+        
+        if metric == "roc_auc":
+            for ev in evaluations:
+                metric_func.add_batch(prediction_scores=ev["probs"], references=ev["references"])
+        else:
+            for ev in evaluations:
+                metric_func.add_batch(predictions=ev["predictions"], references=ev["references"])
+        
+        if metric == "npv":
+            all_metrics[metric] = metric_func.compute(pos_label=0)["precision"]
+        elif metric == "specificity":
+            all_metrics[metric] = metric_func.compute(pos_label=0)["recall"]
+        else:
+            all_metrics[metric] = metric_func.compute()[metric]
+    
     print(all_metrics)
     return loss, all_metrics
 
@@ -166,6 +183,9 @@ class ClassificationClient(fl.client.NumPyClient):
         loss, all_metrics = test(cls_model, te_loader)
         return float(loss), len(te_loader), all_metrics
 
+
+# Initialize a logger 
+fl.common.logger.configure(identifier="fl-cs", filename="../../data/output/client.log")
 
 # Start client (training and evaluation)
 # Get the server address from the server_details.env file
