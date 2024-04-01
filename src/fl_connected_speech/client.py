@@ -90,6 +90,8 @@ def load_data():
 def train(model, train_loader, epochs):
     """Train the model for a given number of epochs."""
     optimizer = AdamW(model.parameters(), lr=5e-5)
+    
+    print("Local training started...")
     model.train()
 
     for _ in range(epochs):
@@ -100,6 +102,8 @@ def train(model, train_loader, epochs):
             loss.backward()
             optimizer.step()
             optimizer.zero_grad()
+
+    print("Local training finished.")
 
 
 def test(model, test_loader):
