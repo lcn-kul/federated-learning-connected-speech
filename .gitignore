@@ -6,6 +6,9 @@ data/**/*.log
 # Ignore tests
 tests/
 
+# Ignore vscode cache
+.vscode/
+
 # Ignore mlruns
 mlruns/
 # Ignore model files
