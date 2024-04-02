@@ -24,7 +24,7 @@ The easiest way to get Python and a virtual environment manager is by installing
 ## Starting the Client
 1. Open a terminal or use the Anaconda prompt (Windows) and activate your virtual environment (e.g., ```conda activate fl-cs```)
 2. Navigate to the folder in which the ```client.py``` script is located (e.g., ```cd your-path/federated-learning-connected-speech/src/fl_connected_speech```)
-3. Start the client and write the output to a log file (e.g., ```python client.py > ../../data/output/client.log 2>&1```)
+3. Start the client (e.g., ```python client.py```). **A log file will be created automatically in data/output/.**
 
 Ideally, the client should be started in the background, as it will need to stay running until the federated learning rounds are completed (e.g., through ```nohup``` or ```screen``` on Linux, possibly ```start``` on Windows).
 
