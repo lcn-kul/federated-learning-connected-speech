@@ -6,6 +6,11 @@ data/**/*.log
 # Ignore tests
 tests/
 
+# Ignore mlruns
+mlruns/
+# Ignore model files
+models/
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
