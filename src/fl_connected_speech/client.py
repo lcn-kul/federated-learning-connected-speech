@@ -67,7 +67,7 @@ def load_data():
     )
     # Split into train and test (stratified)
     tokenized_datasets = tokenized_datasets.train_test_split(
-        test_size=0.2, shuffle=True, seed=42, stratify_by_column="labels",
+        test_size=0.3, shuffle=True, seed=42, stratify_by_column="labels",
     )
 
     tokenized_datasets = tokenized_datasets.remove_columns("text")
