@@ -158,6 +158,17 @@ cls_model = AutoModelForSequenceClassification.from_pretrained(
     MODEL_BASE,
     num_labels=len(LABELS),
 ).to(DEVICE)
+NUM_LAYERS = len(cls_model.roberta.encoder.layer)
+# Freeze all model parameters except for the classification head
+# and the last layer of the transformer
+for name, param in cls_model.named_parameters():
+    if "classifier" in name:
+        param.requires_grad = True
+    elif str(NUM_LAYERS - 1) in name:
+        param.requires_grad = True
+    else:
+        param.requires_grad = False
+# Load the data
 tr_loader, te_loader = load_data()
 
 
@@ -165,13 +176,24 @@ class ClassificationClient(fl.client.NumPyClient):
     """Flower client for the neurodegenerative disease classification task."""
     def get_parameters(self, config):
         """Return the current parameters of the model, used by the server to obtain the global parameters."""
-        return [val.cpu().numpy() for _, val in cls_model.state_dict().items()]
+        return [
+                val.cpu().numpy() for _, val in cls_model.classifier.state_dict().items()
+            ] + [
+                val.cpu().numpy() for _, val in cls_model.roberta.encoder.layer[-1].state_dict().items()
+            ]
 
     def set_parameters(self, parameters):  # noqa
         """Set the parameters of the model through the parameters obtained from the server."""
-        params_dict = zip(cls_model.state_dict().keys(), parameters)
-        state_dict = OrderedDict({k: torch.Tensor(v) for k, v in params_dict})
-        cls_model.load_state_dict(state_dict, strict=True)
+        parameters_classifier = parameters[: len(cls_model.classifier.state_dict())]
+        parameters_transformer = parameters[len(cls_model.classifier.state_dict()):]
+
+        params_dict_cls = zip(cls_model.classifier.state_dict().keys(), parameters_classifier)
+        state_dict_cls = OrderedDict({k: torch.Tensor(v) for k, v in params_dict_cls})
+        cls_model.classifier.load_state_dict(state_dict_cls, strict=True)
+
+        params_dict_tr = zip(cls_model.roberta.encoder.layer[-1].state_dict().keys(), parameters_transformer)
+        state_dict_tr = OrderedDict({k: torch.Tensor(v) for k, v in params_dict_tr})
+        cls_model.roberta.encoder.layer[-1].load_state_dict(state_dict_tr, strict=True)
 
     def fit(self, parameters, config):
         """Train the model on the training set."""

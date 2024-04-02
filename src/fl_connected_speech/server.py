@@ -14,7 +14,8 @@ from transformers import AutoModelForSequenceClassification
 load_dotenv(dotenv_path="../../server_details.env")
 ROUNDS = 10
 MODEL_BASE = "nreimers/mMiniLMv2-L6-H384-distilled-from-XLMR-Large"
-N_CLIENTS = int(os.getenv("N_CLIENTS"))  # Number of clients that need to be available to start the round
+# Number of clients that need to be available to start the round
+N_CLIENTS = int(os.getenv("N_CLIENTS"))
 # Invert the labels so that healthy = 0
 LABELS = sorted(os.listdir("../../data/input"))[::-1]
 
@@ -27,6 +28,16 @@ cls_model = AutoModelForSequenceClassification.from_pretrained(
     MODEL_BASE,
     num_labels=len(LABELS),
 )
+NUM_LAYERS = len(cls_model.roberta.encoder.layer)
+# Freeze all model parameters except for the classification head
+# and the last layer of the transformer
+for name, param in cls_model.named_parameters():
+    if "classifier" in name:
+        param.requires_grad = True
+    elif str(NUM_LAYERS - 1) in name:
+        param.requires_grad = True
+    else:
+        param.requires_grad = False
 model_output_dir = os.getenv("OUTPUT_DIR")
 
 
@@ -50,9 +61,17 @@ class SaveModelStrategy(fl.server.strategy.FedAvg):
 
             # Convert `List[np.ndarray]` to PyTorch`state_dict`
             # Get the current model parameters
-            params_dict = zip(cls_model.state_dict().keys(), aggregated_ndarrays)
-            state_dict = {k: torch.tensor(v) for k, v in params_dict}
-            cls_model.load_state_dict(state_dict, strict=True)
+            params_dict_classifier = zip(
+                cls_model.classifier.state_dict().keys(), aggregated_ndarrays[: len(cls_model.classifier.state_dict())]
+            )
+            state_dict_classifier = {k: torch.tensor(v) for k, v in params_dict_classifier}
+            cls_model.classifier.load_state_dict(state_dict_classifier, strict=True)
+
+            params_dict_transformer = zip(
+                cls_model.roberta.encoder.layer[-1].state_dict().keys(), aggregated_ndarrays[len(cls_model.classifier.state_dict()):]
+            )
+            state_dict_transformer = {k: torch.tensor(v) for k, v in params_dict_transformer}
+            cls_model.roberta.encoder.layer[-1].load_state_dict(state_dict_transformer, strict=True)
 
             # Save the model with huggingface
             cls_model.save_pretrained(os.path.join(model_output_dir, "picture_description", f"round_{server_round}"))
