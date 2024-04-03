@@ -1,3 +1,4 @@
+import logging
 import os
 from typing import Tuple, List, Union, Dict, Optional
 
@@ -96,6 +97,8 @@ def get_weighted_av_metrics(metrics: List[Tuple[int, Metrics]]) -> Metrics:
 
     for metric, value in final_metrics.items():
         mlflow.log_metric(metric, value)
+
+    fl.common.logger.log(msg=final_metrics, level=logging.DEBUG)
 
     return final_metrics
 

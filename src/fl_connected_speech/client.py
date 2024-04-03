@@ -1,3 +1,4 @@
+import logging
 import glob
 import os
 from collections import OrderedDict
@@ -207,6 +208,8 @@ class ClassificationClient(fl.client.NumPyClient):
         """Evaluate the model on the test set."""
         self.set_parameters(parameters)
         loss, all_metrics = test(cls_model, te_loader)
+        fl.common.logger.log(msg=all_metrics, level=logging.DEBUG)
+        fl.common.logger.log(msg={"loss": loss}, level=logging.DEBUG)
         return float(loss), len(te_loader), all_metrics
 
 
