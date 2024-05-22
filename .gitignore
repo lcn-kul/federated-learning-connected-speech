@@ -2,6 +2,8 @@
 data/**/*.txt
 # Exclude any log files in the subdirectories in /data
 data/**/*.log
+# Exclude any .cha files in the subdirectories in /data
+data/**/*.cha
 
 # Ignore tests
 tests/
