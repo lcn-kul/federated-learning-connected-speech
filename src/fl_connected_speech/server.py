@@ -11,14 +11,16 @@ from flwr.common import Metrics, FitRes, Scalar, Parameters
 from flwr.server.client_proxy import ClientProxy
 from transformers import AutoModelForSequenceClassification
 
+from constants import (
+    LABELS,
+    MODEL_BASE,
+    N_CLIENTS,
+    ROUNDS,
+    SERVER_DETAILS_PATH,
+)
+
 # Parameters
-load_dotenv(dotenv_path="../../server_details.env")
-ROUNDS = 10
-MODEL_BASE = "nreimers/mMiniLMv2-L6-H384-distilled-from-XLMR-Large"
-# Number of clients that need to be available to start the round
-N_CLIENTS = int(os.getenv("N_CLIENTS"))
-# Invert the labels so that healthy = 0
-LABELS = sorted(os.listdir("../../data/input"))[::-1]
+load_dotenv(dotenv_path=SERVER_DETAILS_PATH)
 
 # Initialize mlflow
 mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
@@ -29,13 +31,13 @@ cls_model = AutoModelForSequenceClassification.from_pretrained(
     MODEL_BASE,
     num_labels=len(LABELS),
 )
-NUM_LAYERS = len(cls_model.roberta.encoder.layer)
+num_layers = len(cls_model.roberta.encoder.layer)
 # Freeze all model parameters except for the classification head
 # and the last layer of the transformer
 for name, param in cls_model.named_parameters():
     if "classifier" in name:
         param.requires_grad = True
-    elif str(NUM_LAYERS - 1) in name:
+    elif str(num_layers - 1) in name:
         param.requires_grad = True
     else:
         param.requires_grad = False

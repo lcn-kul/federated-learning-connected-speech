@@ -16,20 +16,19 @@ from transformers import (
     DataCollatorWithPadding,
 )
 
+from constants import (
+    BATCH_SIZE,
+    DEFAULT_ENCODING,
+    DEVICE,
+    EPOCHS,
+    LABELS, 
+    METRICS,
+    MODEL_BASE,
+    SERVER_DETAILS_PATH,
+)
+
 # Parameters
-load_dotenv(dotenv_path="../../server_details.env")
-MODEL_BASE = "nreimers/mMiniLMv2-L6-H384-distilled-from-XLMR-Large"
-DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-BATCH_SIZE = 8
-# recall = sensitivity, precision = positive predictive value
-# precision of the negative class = negative predictive value
-# recall of the negative class = specificity
-METRICS = ["accuracy", "precision", "recall", "f1", "roc_auc", "npv", "specificity"]
-# Invert labels so that healthy = 0
-LABELS = sorted(os.listdir("../../data/input"))[::-1]
-EPOCHS = 10
-# Find out the OS that the client is running on
-DEFAULT_ENCODING = "ISO-8859-1" if os.name == "nt" else "utf-8"
+load_dotenv(dotenv_path=SERVER_DETAILS_PATH)
 
 
 def load_data():
