@@ -1,5 +1,6 @@
 # Set up a few constants here
-import os 
+from dotenv import load_dotenv
+import os
 
 import torch
 
@@ -11,10 +12,12 @@ PROJECT_DIR = os.path.join(os.path.abspath(os.path.join(HERE, os.pardir)))
 SRC_DIR = os.path.join(PROJECT_DIR, "fl_connected_speech")
 DATA_DIR = os.path.join(os.sep.join(PROJECT_DIR.split(os.sep)[:-1]), "data")
 INPUT_DIR = os.path.join(DATA_DIR, "input")
+OUTPUT_DIR = os.path.join(DATA_DIR, "output")
 EXTERNAL_DIR = os.path.join(DATA_DIR, "external")
 
 # Server details
 SERVER_DETAILS_PATH = os.path.join(os.sep.join(PROJECT_DIR.split(os.sep)[:-1]), "server_details.env")
+load_dotenv(dotenv_path=SERVER_DETAILS_PATH)
 
 # Path to a preprocessing script
 EXTERNAL_PREPROCESSING_SCRIPT = os.path.join(SRC_DIR, "preprocess_external_transcripts.py")
