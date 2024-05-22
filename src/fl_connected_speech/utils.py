@@ -1,14 +1,16 @@
 import glob
 import logging
 import os
-from typing import List, Tuple
+from typing import Dict, List, Optional, OrderedDict, Tuple, Union
 
 import evaluate
 import flwr as fl
 import mlflow
+import numpy as np
 import torch
 from datasets import load_dataset, concatenate_datasets, ClassLabel
-from flwr.common import Metrics
+from flwr.common import FitRes, Metrics, Scalar, Parameters
+from flwr.server.client_proxy import ClientProxy
 from torch.utils.data import DataLoader
 from transformers import (
     AdamW,
@@ -20,6 +22,7 @@ from constants import (
     BATCH_SIZE,
     DEFAULT_ENCODING,
     DEVICE,
+    EPOCHS,
     INPUT_DIR,
     LABELS,
     METRICS,
@@ -187,3 +190,99 @@ def get_weighted_av_metrics(metrics: List[Tuple[int, Metrics]]) -> Metrics:
     fl.common.logger.log(msg=final_metrics, level=logging.DEBUG)
 
     return final_metrics
+
+
+class ClassificationClient(fl.client.NumPyClient):
+    """Flower client for the neurodegenerative disease classification task."""
+    # Create an that adds the model_output_dir + cls_model + data
+    def __init__(self, *args, **kwargs):
+        """Initialize the client with the model and the model output directory."""
+        super().__init__(*args, **kwargs)
+        # Load a model (only used to get the parameter state dict)
+        self.cls_model = initialize_cls_model()
+        self.model_output_dir = os.getenv("OUTPUT_DIR")
+        self.tr_loader, self.te_loader = load_data()
+
+
+    def get_parameters(self, config):
+        """Return the current parameters of the model, used by the server to obtain the global parameters."""
+        return [
+                val.cpu().numpy() for _, val in self.cls_model.classifier.state_dict().items()
+            ] + [
+                val.cpu().numpy() for _, val in self.cls_model.roberta.encoder.layer[-1].state_dict().items()
+            ]
+
+    def set_parameters(self, parameters):  # noqa
+        """Set the parameters of the model through the parameters obtained from the server."""
+        parameters_classifier = parameters[: len(self.cls_model.classifier.state_dict())]
+        parameters_transformer = parameters[len(self.cls_model.classifier.state_dict()):]
+
+        params_dict_cls = zip(self.cls_model.classifier.state_dict().keys(), parameters_classifier)
+        state_dict_cls = OrderedDict({k: torch.Tensor(v) for k, v in params_dict_cls})
+        self.cls_model.classifier.load_state_dict(state_dict_cls, strict=True)
+
+        params_dict_tr = zip(self.cls_model.roberta.encoder.layer[-1].state_dict().keys(), parameters_transformer)
+        state_dict_tr = OrderedDict({k: torch.Tensor(v) for k, v in params_dict_tr})
+        self.cls_model.roberta.encoder.layer[-1].load_state_dict(state_dict_tr, strict=True)
+
+    def fit(self, parameters, config):
+        """Train the model on the training set."""
+        self.set_parameters(parameters)
+        print("Training Started...")
+        train(self.cls_model, self.tr_loader, epochs=EPOCHS)
+        print("Training Finished.")
+        return self.get_parameters(config={}), len(self.tr_loader), {}
+
+    def evaluate(self, parameters, config):
+        """Evaluate the model on the test set."""
+        self.set_parameters(parameters)
+        loss, all_metrics = test(self.cls_model, self.te_loader)
+        fl.common.logger.log(msg=all_metrics, level=logging.DEBUG)
+        fl.common.logger.log(msg={"loss": loss}, level=logging.DEBUG)
+        return float(loss), len(self.te_loader), all_metrics
+    
+
+class SaveModelStrategy(fl.server.strategy.FedAvg):
+    # Create an init that passes everything to the parent class and adds the model_output_dir + cls_model
+    def __init__(self, *args, **kwargs):
+        """Initialize the client with the model and the model output directory."""
+        super().__init__(*args, **kwargs)
+        # Load a model (only used to get the parameter state dict)
+        self.cls_model = initialize_cls_model()
+        self.model_output_dir = os.getenv("OUTPUT_DIR")
+
+    def aggregate_fit(
+        self,
+        server_round: int,
+        results: List[Tuple[fl.server.client_proxy.ClientProxy, fl.common.FitRes]],
+        failures: List[Union[Tuple[ClientProxy, FitRes], BaseException]],
+    ) -> Tuple[Optional[Parameters], Dict[str, Scalar]]:
+        """Aggregate model weights using weighted average and store checkpoint"""
+
+        # Call aggregate_fit from base class (FedAvg) to aggregate parameters and metrics
+        aggregated_parameters, aggregated_metrics = super().aggregate_fit(server_round, results, failures)
+
+        if aggregated_parameters is not None:
+            print(f"Saving round {server_round} aggregated_parameters...")
+
+            # Convert `Parameters` to `List[np.ndarray]`
+            aggregated_ndarrays: List[np.ndarray] = fl.common.parameters_to_ndarrays(aggregated_parameters)
+
+            # Convert `List[np.ndarray]` to PyTorch`state_dict`
+            # Get the current model parameters
+            params_dict_classifier = zip(
+                self.cls_model.classifier.state_dict().keys(), aggregated_ndarrays[: len(self.cls_model.classifier.state_dict())]
+            )
+            state_dict_classifier = {k: torch.tensor(v) for k, v in params_dict_classifier}
+            self.cls_model.classifier.load_state_dict(state_dict_classifier, strict=True)
+
+            params_dict_transformer = zip(
+                self.cls_model.roberta.encoder.layer[-1].state_dict().keys(), aggregated_ndarrays[len(self.cls_model.classifier.state_dict()):]
+            )
+            state_dict_transformer = {k: torch.tensor(v) for k, v in params_dict_transformer}
+            self.cls_model.roberta.encoder.layer[-1].load_state_dict(state_dict_transformer, strict=True)
+
+            # Save the model with huggingface
+            self.cls_model.save_pretrained(os.path.join(self.model_output_dir, "picture_description", f"round_{server_round}"))
+
+        return aggregated_parameters, aggregated_metrics
