@@ -1,9 +1,14 @@
 import glob
+import logging
 import os
+from typing import List, Tuple
 
 import evaluate
+import flwr as fl
+import mlflow
 import torch
 from datasets import load_dataset, concatenate_datasets, ClassLabel
+from flwr.common import Metrics
 from torch.utils.data import DataLoader
 from transformers import (
     AdamW,
@@ -160,3 +165,25 @@ def initialize_cls_model():
         else:
             param.requires_grad = False
     return cls_model
+
+
+def get_weighted_av_metrics(metrics: List[Tuple[int, Metrics]]) -> Metrics:
+    """Aggregate all the metrics from all clients.
+
+    :param metrics: List of tuples (num_examples, metrics) for each client
+    :type metrics: List[Tuple[int, Metrics]]
+    :return: A dictionary with the weighted average of each metric
+    :rtype: Metrics
+    """
+    all_metrics = list(metrics[0][1].keys())
+    final_metrics = {}
+    # Create a weighted average of each metric by number of examples used in each client
+    for metric in all_metrics:
+        final_metrics[metric] = sum([m[1][metric] * m[0] for m in metrics]) / sum([m[0] for m in metrics])
+
+    for metric, value in final_metrics.items():
+        mlflow.log_metric(metric, value)
+
+    fl.common.logger.log(msg=final_metrics, level=logging.DEBUG)
+
+    return final_metrics

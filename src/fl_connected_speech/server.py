@@ -1,4 +1,3 @@
-import logging
 import os
 from typing import Tuple, List, Union, Dict, Optional
 
@@ -7,17 +6,16 @@ import mlflow
 import numpy as np
 import torch
 from dotenv import load_dotenv
-from flwr.common import Metrics, FitRes, Scalar, Parameters
+from flwr.common import FitRes, Scalar, Parameters
 from flwr.server.client_proxy import ClientProxy
-from transformers import AutoModelForSequenceClassification
 
 from constants import (
-    LABELS,
-    MODEL_BASE,
     N_CLIENTS,
     ROUNDS,
     SERVER_DETAILS_PATH,
+    OUTPUT_DIR,
 )
+from utils import initialize_cls_model, get_weighted_av_metrics
 
 # Parameters
 load_dotenv(dotenv_path=SERVER_DETAILS_PATH)
@@ -27,20 +25,7 @@ mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
 mlflow.set_experiment(experiment_name=f"federated_learning_connected_speech")
 
 # Load a model (only used to get the parameter state dict)
-cls_model = AutoModelForSequenceClassification.from_pretrained(
-    MODEL_BASE,
-    num_labels=len(LABELS),
-)
-num_layers = len(cls_model.roberta.encoder.layer)
-# Freeze all model parameters except for the classification head
-# and the last layer of the transformer
-for name, param in cls_model.named_parameters():
-    if "classifier" in name:
-        param.requires_grad = True
-    elif str(num_layers - 1) in name:
-        param.requires_grad = True
-    else:
-        param.requires_grad = False
+cls_model = initialize_cls_model()
 model_output_dir = os.getenv("OUTPUT_DIR")
 
 
@@ -82,31 +67,8 @@ class SaveModelStrategy(fl.server.strategy.FedAvg):
         return aggregated_parameters, aggregated_metrics
 
 
-# Add a function that aggregates all metrics
-def get_weighted_av_metrics(metrics: List[Tuple[int, Metrics]]) -> Metrics:
-    """Aggregate all the metrics from all clients.
-
-    :param metrics: List of tuples (num_examples, metrics) for each client
-    :type metrics: List[Tuple[int, Metrics]]
-    :return: A dictionary with the weighted average of each metric
-    :rtype: Metrics
-    """
-    all_metrics = list(metrics[0][1].keys())
-    final_metrics = {}
-    # Create a weighted average of each metric by number of examples used in each client
-    for metric in all_metrics:
-        final_metrics[metric] = sum([m[1][metric] * m[0] for m in metrics]) / sum([m[0] for m in metrics])
-
-    for metric, value in final_metrics.items():
-        mlflow.log_metric(metric, value)
-
-    fl.common.logger.log(msg=final_metrics, level=logging.DEBUG)
-
-    return final_metrics
-
-
 # Initialize a logger 
-fl.common.logger.configure(identifier="fl-cs", filename="../../data/output/server.log")
+fl.common.logger.configure(identifier="fl-cs", filename=os.path.join(OUTPUT_DIR, "server.log"))
 
 # Start server
 with mlflow.start_run(run_name="picture_description"):
