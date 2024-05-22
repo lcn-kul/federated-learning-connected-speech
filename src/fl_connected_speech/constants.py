@@ -20,7 +20,7 @@ SERVER_DETAILS_PATH = os.path.join(os.sep.join(PROJECT_DIR.split(os.sep)[:-1]), 
 load_dotenv(dotenv_path=SERVER_DETAILS_PATH)
 
 # Path to a preprocessing script
-EXTERNAL_PREPROCESSING_SCRIPT = os.path.join(SRC_DIR, "preprocess_external_transcripts.py")
+EXTERNAL_PREPROCESSING_SCRIPT = os.path.join(SRC_DIR, "server_preprocess_external_transcripts.py")
 
 # Model, device and data details
 MODEL_BASE = "nreimers/mMiniLMv2-L6-H384-distilled-from-XLMR-Large"

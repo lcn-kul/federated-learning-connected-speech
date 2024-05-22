@@ -1,8 +1,25 @@
+import glob
+import os
+
 import evaluate
 import torch
-from transformers import AdamW
-
-from constants import DEVICE, METRICS
+from datasets import load_dataset, concatenate_datasets, ClassLabel
+from torch.utils.data import DataLoader
+from transformers import (
+    AdamW,
+    AutoModelForSequenceClassification,
+    AutoTokenizer,
+    DataCollatorWithPadding,
+)
+from constants import (
+    BATCH_SIZE,
+    DEFAULT_ENCODING,
+    DEVICE,
+    INPUT_DIR,
+    LABELS,
+    METRICS,
+    MODEL_BASE,
+)
 
 def train(model, train_loader, epochs):
     """Train the model for a given number of epochs."""
@@ -68,3 +85,78 @@ def test(model, test_loader):
     
     print(all_metrics)
     return loss, all_metrics
+
+
+def load_data():
+    """Load the data for each diagnostic group."""
+    raw_datasets = []
+    for label in LABELS:
+        # Check if the folder is empty
+        if len(glob.glob(os.path.join(INPUT_DIR, label, "*.txt"))) == 0:
+            continue
+        # Load from text files in each label-specific sub-folder
+        label_specific_dataset = load_dataset(
+            "text",
+            data_dir=os.path.join(INPUT_DIR, label),
+            download_mode="force_redownload",
+            encoding=DEFAULT_ENCODING,
+        )["train"]
+        # Add 'label' column to each split
+        label_specific_dataset = label_specific_dataset.add_column(
+            "labels", [label] * len(label_specific_dataset)
+        )
+        # Add to list of datasets
+        raw_datasets.append(label_specific_dataset)
+
+    # Concatenate all datasets into one
+    raw_dataset = concatenate_datasets(raw_datasets)
+    # Shuffle the entries
+    raw_dataset = raw_dataset.shuffle(seed=42)
+
+    # Add label column
+    raw_dataset = raw_dataset.cast_column("labels", ClassLabel(num_classes=len(LABELS), names=LABELS))
+
+    # Tokenize the dataset
+    tokenizer = AutoTokenizer.from_pretrained(MODEL_BASE)
+    tokenized_datasets = raw_dataset.map(
+        lambda examples: tokenizer(examples["text"], truncation=True), batched=True,
+    )
+    # Split into train and test (stratified)
+    tokenized_datasets = tokenized_datasets.train_test_split(
+        test_size=0.3, shuffle=True, seed=42, stratify_by_column="labels",
+    )
+
+    tokenized_datasets = tokenized_datasets.remove_columns("text")
+
+    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+    train_loader = DataLoader(
+        tokenized_datasets["train"],
+        shuffle=True,
+        batch_size=BATCH_SIZE,
+        collate_fn=data_collator,
+    )
+
+    test_loader = DataLoader(
+        tokenized_datasets["test"], batch_size=BATCH_SIZE, collate_fn=data_collator,
+    )
+
+    return train_loader, test_loader
+
+
+def initialize_cls_model():
+    """Initialize the classification model with partially frozen layers."""
+    cls_model = AutoModelForSequenceClassification.from_pretrained(
+        MODEL_BASE,
+        num_labels=len(LABELS),
+    ).to(DEVICE)
+    NUM_LAYERS = len(cls_model.roberta.encoder.layer)
+    # Freeze all model parameters except for the classification head
+    # and the last layer of the transformer
+    for name, param in cls_model.named_parameters():
+        if "classifier" in name:
+            param.requires_grad = True
+        elif str(NUM_LAYERS - 1) in name:
+            param.requires_grad = True
+        else:
+            param.requires_grad = False
+    return cls_model
