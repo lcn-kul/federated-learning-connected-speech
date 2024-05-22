@@ -15,11 +15,6 @@ from utils import get_weighted_av_metrics, SaveModelStrategy
 # Parameters
 load_dotenv(dotenv_path=SERVER_DETAILS_PATH)
 
-# Initialize mlflow
-mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
-mlflow.set_experiment(experiment_name=f"federated_learning_connected_speech")
-
-
 # Initialize a logger 
 fl.common.logger.configure(identifier="fl-cs", filename=os.path.join(OUTPUT_DIR, "server.log"))
 

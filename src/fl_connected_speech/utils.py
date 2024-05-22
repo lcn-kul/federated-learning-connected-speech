@@ -29,6 +29,11 @@ from constants import (
     MODEL_BASE,
 )
 
+# Initialize mlflow
+mlflow.set_tracking_uri(os.getenv("MLFLOW_TRACKING_URI"))
+mlflow.set_experiment(experiment_name=f"federated_learning_connected_speech")
+
+
 def train(model, train_loader, epochs):
     """Train the model for a given number of epochs."""
     optimizer = AdamW(model.parameters(), lr=5e-5)
