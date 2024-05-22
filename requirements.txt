@@ -7,3 +7,4 @@ python_dotenv
 scikit-learn
 torch
 transformers
+chamd
