@@ -29,7 +29,7 @@ saved_model_dir = os.path.join(os.getenv("OUTPUT_DIR"), "picture_description")
 log_file = os.path.join(OUTPUT_DIR, "external_evaluation_results.log")
 
 
-def load_data():
+def load_test_data():
     # Load the dataset
     external_dataset = load_dataset(EXTERNAL_PREPROCESSING_SCRIPT)["train"]
     external_dataset = external_dataset.cast_column("label", ClassLabel(num_classes=len(LABELS), names=LABELS))
@@ -76,7 +76,7 @@ def evaluate(model_dir, test_loader):
 
 if __name__ == "__main__":
     # Load the data
-    test_loader = load_data()
+    test_loader = load_test_data()
 
     # Evaluate the model
     evaluate(saved_model_dir, test_loader)
