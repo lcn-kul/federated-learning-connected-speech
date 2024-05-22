@@ -61,7 +61,7 @@ class ExternalDataset(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "subject_id": datasets.Value("int32"),
-                    "sentences": datasets.features.Sequence(datasets.Value("string")),
+                    "text": datasets.Value("string"),
                     "label": datasets.Value("string"),
                 }
             )
@@ -69,7 +69,7 @@ class ExternalDataset(datasets.GeneratorBasedBuilder):
             features = datasets.Features(
                 {
                     "subject_id": datasets.Value("int32"),
-                    "sentences": datasets.features.Sequence(datasets.Value("string")),
+                    "text": datasets.Value("string"),
                     "label": datasets.Value("string"),
                 }
             )
@@ -135,7 +135,7 @@ class ExternalDataset(datasets.GeneratorBasedBuilder):
                 if "PAR" in str(line.metadata["speaker"]):
                     parts.append(str(line.text)[:-2] + ".")
 
-            sentences["sentences"] = parts
+            sentences["text"] = parts.join(" ")
 
             key += 1
             # Add subject ID
