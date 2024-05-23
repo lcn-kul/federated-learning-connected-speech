@@ -75,25 +75,16 @@ def test(model, test_loader):
     loss /= len(test_loader.dataset)
     # Compute each metric
     for metric in METRICS:
-        if metric == "npv":
-            metric_func = evaluate.load("precision")
-        elif metric == "specificity":
-            metric_func = evaluate.load("recall")
-        else:
-            metric_func = evaluate.load(metric)
-        
-        if metric == "roc_auc":
+        if metric == "youden":
+            metric_func = evaluate.load("helena-balabin/youden_index")
             for ev in evaluations:
                 metric_func.add_batch(prediction_scores=ev["probs"], references=ev["references"])
+            youden_metrics = {f"{metric}_{key}": value for key, value in metric_func.compute().items()}
+            all_metrics.update(youden_metrics)
         else:
+            metric_func = evaluate.load(metric)
             for ev in evaluations:
                 metric_func.add_batch(predictions=ev["predictions"], references=ev["references"])
-        
-        if metric == "npv":
-            all_metrics[metric] = metric_func.compute(pos_label=0)["precision"]
-        elif metric == "specificity":
-            all_metrics[metric] = metric_func.compute(pos_label=0)["recall"]
-        else:
             all_metrics[metric] = metric_func.compute()[metric]
     
     print(all_metrics)

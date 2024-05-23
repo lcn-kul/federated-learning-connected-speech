@@ -29,7 +29,7 @@ BATCH_SIZE = 8
 # recall = sensitivity, precision = positive predictive value
 # precision of the negative class = negative predictive value
 # recall of the negative class = specificity
-METRICS = ["accuracy", "precision", "recall", "f1", "roc_auc", "npv", "specificity"]
+METRICS = ["accuracy", "precision", "recall", "f1", "youden"]
 # Invert labels so that healthy = 0
 LABELS = sorted(os.listdir(INPUT_DIR))[::-1]
 # Number of epochs per round
