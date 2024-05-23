@@ -135,7 +135,7 @@ class ExternalDataset(datasets.GeneratorBasedBuilder):
                 if "PAR" in str(line.metadata["speaker"]):
                     parts.append(str(line.text)[:-2] + ".")
 
-            sentences["text"] = parts.join(" ")
+            sentences["text"] = " ".join(parts)
 
             key += 1
             # Add subject ID
