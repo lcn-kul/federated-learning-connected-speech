@@ -13,6 +13,7 @@ from transformers import (
 from utils import test
 from constants import (
     BATCH_SIZE,
+    DEVICE,
     EXTERNAL_PREPROCESSING_SCRIPT,
     LABELS,
     MODEL_BASE,
@@ -65,7 +66,7 @@ def evaluate(model_dir, test_loader):
     # For each round, evaluate the model on the external dataset
     for subdir in subdirs:
         # Load the model
-        model = AutoModelForSequenceClassification.from_pretrained(subdir)
+        model = AutoModelForSequenceClassification.from_pretrained(subdir).to(DEVICE)
 
         # Evaluate the model
         _, results = test(model, test_loader)
