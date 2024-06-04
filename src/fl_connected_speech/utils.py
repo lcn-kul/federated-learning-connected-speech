@@ -141,7 +141,6 @@ def load_data():
             )
         )
 
-        print(tokenized_dataset)
     return loaders[0], loaders[1]
 
 
