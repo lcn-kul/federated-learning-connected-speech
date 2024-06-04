@@ -93,58 +93,53 @@ def test(model, test_loader):
 
 def load_data():
     """Load the data for each diagnostic group."""
-    raw_datasets = []
-    for label in LABELS:
-        # Check if the folder is empty
-        if len(glob.glob(os.path.join(INPUT_DIR, label, "*.txt"))) == 0:
-            continue
-        # Load from text files in each label-specific sub-folder
-        label_specific_dataset = load_dataset(
-            "text",
-            data_dir=os.path.join(INPUT_DIR, label),
-            download_mode="force_redownload",
-            encoding=DEFAULT_ENCODING,
-        )["train"]
-        # Add 'label' column to each split
-        label_specific_dataset = label_specific_dataset.add_column(
-            "labels", [label] * len(label_specific_dataset)
-        )
-        # Add to list of datasets
-        raw_datasets.append(label_specific_dataset)
-
-    # Concatenate all datasets into one
-    raw_dataset = concatenate_datasets(raw_datasets)
-    # Shuffle the entries
-    raw_dataset = raw_dataset.shuffle(seed=42)
-
-    # Add label column
-    raw_dataset = raw_dataset.cast_column("labels", ClassLabel(num_classes=len(LABELS), names=LABELS))
-
-    # Tokenize the dataset
+    # Initialize the tokenizer beforehand
     tokenizer = AutoTokenizer.from_pretrained(MODEL_BASE)
-    tokenized_datasets = raw_dataset.map(
-        lambda examples: tokenizer(examples["text"], truncation=True), batched=True,
-    )
-    # Split into train and test (stratified)
-    tokenized_datasets = tokenized_datasets.train_test_split(
-        test_size=0.3, shuffle=True, seed=42, stratify_by_column="labels",
-    )
+    
+    loaders = []
+    for partition in ["train", "test"]:
+        raw_datasets = []
+        for label in LABELS:
+            # Check if the folder is empty
+            if len(glob.glob(os.path.join(INPUT_DIR, partition, label, "*.txt"))) == 0:
+                continue
+            # Load from text files in each label-specific sub-folder
+            label_specific_dataset = load_dataset(
+                "text",
+                data_dir=os.path.join(INPUT_DIR, partition, label),
+                download_mode="force_redownload",
+                encoding=DEFAULT_ENCODING,
+            )["train"]
+            # Add 'label' column to each split
+            label_specific_dataset = label_specific_dataset.add_column(
+                "labels", [label] * len(label_specific_dataset)
+            )
+            # Add to list of datasets
+            raw_datasets.append(label_specific_dataset)
 
-    tokenized_datasets = tokenized_datasets.remove_columns("text")
+        # Concatenate all datasets into one
+        raw_dataset = concatenate_datasets(raw_datasets)
+        # Shuffle the entries
+        raw_dataset = raw_dataset.shuffle(seed=42)
 
-    data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
-    train_loader = DataLoader(
-        tokenized_datasets["train"],
-        shuffle=True,
-        batch_size=BATCH_SIZE,
-        collate_fn=data_collator,
-    )
+        # Add label column
+        raw_dataset = raw_dataset.cast_column("labels", ClassLabel(num_classes=len(LABELS), names=LABELS))
 
-    test_loader = DataLoader(
-        tokenized_datasets["test"], batch_size=BATCH_SIZE, collate_fn=data_collator,
-    )
+        # Tokenize the dataset
+        tokenized_dataset = raw_dataset.map(
+            lambda examples: tokenizer(examples["text"], truncation=True), batched=True,
+        )
+        tokenized_dataset = tokenized_dataset.remove_columns("text")
 
-    return train_loader, test_loader
+        data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+        loaders += DataLoader(
+            tokenized_dataset,
+            shuffle=True,
+            batch_size=BATCH_SIZE,
+            collate_fn=data_collator,
+        )
+
+    return loaders[0], loaders[1]
 
 
 def initialize_cls_model():

@@ -31,7 +31,7 @@ BATCH_SIZE = 8
 # recall of the negative class = specificity
 METRICS = ["accuracy", "precision", "recall", "f1", "youden"]
 # Invert labels so that healthy = 0
-LABELS = sorted(os.listdir(INPUT_DIR))[::-1]
+LABELS = sorted(os.listdir(os.path.join(INPUT_DIR, "train")))[::-1]
 # Number of epochs per round
 EPOCHS = 10
 # Find out the OS that the client is running on
