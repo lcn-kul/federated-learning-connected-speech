@@ -132,13 +132,16 @@ def load_data():
         tokenized_dataset = tokenized_dataset.remove_columns("text")
 
         data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
-        loaders += DataLoader(
-            tokenized_dataset,
-            shuffle=True,
-            batch_size=BATCH_SIZE,
-            collate_fn=data_collator,
+        loaders.append(
+            DataLoader(
+                tokenized_dataset,
+                shuffle=True,
+                batch_size=BATCH_SIZE,
+                collate_fn=data_collator,
+            )
         )
 
+        print(tokenized_dataset)
     return loaders[0], loaders[1]
 
 
