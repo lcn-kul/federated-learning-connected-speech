@@ -24,7 +24,7 @@ The easiest way to get Python and a virtual environment manager is by installing
 ## Starting the Client
 1. Open a terminal or use the Anaconda prompt (Windows) and activate your virtual environment (e.g., ```conda activate fl-cs```)
 2. Navigate to the folder in which the ```client.py``` script is located (e.g., ```cd your-path/federated-learning-connected-speech/src/fl_connected_speech```)
-3. Start the client (e.g., ```python client.py```). **A log file will be created automatically in data/output/.**
+3. Start the client (e.g., ```python client.py```). **A log file called `client.log`` will be created automatically in data/output/.**
 
 Ideally, the client should be started in the background, as it will need to stay running until the federated learning rounds are completed (e.g., through ```nohup``` or ```screen``` on Linux, possibly ```start``` on Windows).
 
@@ -49,3 +49,8 @@ grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that te
 ... 
 Failed to connect to remote host: Connection refused
 ```
+## Additional Local Evaluation 
+The general idea is to investigate whether the performance of a federated learning-based model can outperform local models that are only trained on the data from each site. To measure the performance of these local models, you can run the ``client_evaluate_locally.py`` script:
+1. If not already done: Open a terminal or use the Anaconda prompt (Windows) and activate your virtual environment (e.g., ```conda activate fl-cs```)
+2. Navigate to the folder in which the ```client_evaluate_locally.py``` script is located (e.g., ```cd your-path/federated-learning-connected-speech/src/fl_connected_speech```)
+3. Start the local evaluation (e.g., ```python client_evaluate_locally.py```). **A log file called ``client_local_results.log`` will be created automatically in data/output/.**
