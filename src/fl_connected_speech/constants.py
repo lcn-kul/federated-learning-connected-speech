@@ -39,4 +39,4 @@ DEFAULT_ENCODING = "ISO-8859-1" if os.name == "nt" else "utf-8"
 # NUmber of FL rounds
 ROUNDS = 10
 # Number of clients that need to be available to start the round
-N_CLIENTS = int(os.getenv("N_CLIENTS"))
+N_CLIENTS = int(os.getenv("N_CLIENTS") or 3)
