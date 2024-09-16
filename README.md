@@ -7,7 +7,7 @@ Federated learning for the classification of various neurodegenerative diseases 
 * Git (e.g., [GitHub Desktop](https://desktop.github.com/))
 * Python >=3.8 (e.g., Python 3.11)
 * A python virtual environment manager
-* An server_details.env file with the server address and port (shared beforehand)
+* An server_details.env file with the server address and port (shared beforehand, not needed for external evaluators)
 
 The easiest way to get Python and a virtual environment manager is by installing [Anaconda](https://docs.anaconda.com/free/anaconda/install/)
 
@@ -18,8 +18,20 @@ The easiest way to get Python and a virtual environment manager is by installing
 2. Create a virtual environment using the ```requirements.txt``` file
    * Either open a terminal or use the Anaconda prompt (Windows) and in the project directory (```your-path/federated-learning-connected-speech```) create your environment (e.g., ```conda create -n fl-cs python=3.11```) and install the requirements (e.g, ```pip install -r requirements.txt```)
 3. Add your private files to the project (they will not be uploaded to GitHub)
-   * Add the ```server_details.env``` file with the server address and port (shared beforehand) in the project directory (```your-path/federated-learning-connected-speech```)
-   * Add your disease-group specific subject files to the respective sub-folders in ```your-path/federated-learning-connected-speech/data/input/train``` and ```your-path/federated-learning-connected-speech/data/input/test```. The train folder should contain roughly 70% of the subjects, the test folder should contain around 30%. Ideally, the train/test folders are stratified by the label (i.e., the training and test data contain roughly the same proportion of disease groups), and roughly matched by sex/age/education (i.e., these variables do not differ significantly across train/test sets). Each subject should have a separate ```.txt``` file, the file names do not matter as long as they do not contain the terms "train"/"test"/"val".
+   * **For clients involved in training the federated learning model only**: Add the ```server_details.env``` file with the server address and port (shared beforehand) in the project directory (```your-path/federated-learning-connected-speech```)
+   * **For clients and external evaluators**: Add your disease-group specific subject files to the respective sub-folders in ```your-path/federated-learning-connected-speech/data/input/train``` and ```your-path/federated-learning-connected-speech/data/input/test``` (i.e., AD subjects in the ``/ad-dementia``` and healthy controls in the ```/healthy``` subfolders). The train folder should contain roughly 70% of the subjects, the test folder should contain around 30%. Ideally, the train/test folders are stratified by the label (i.e., the training and test data contain roughly the same proportion of disease groups), and roughly matched by sex/age/education (i.e., these variables do not differ significantly across train/test sets). Each subject should have a separate ```.txt``` file, the file names do not matter as long as they do not contain the terms "train"/"test"/"val". One transcript corresponds to one subject and should only contain the (automatically/manually) transcribed text. 
+
+## External Evaluation
+Here, the idea is to test a model that has been trained on several languages in a federated learning setup on a previously unseen dataset without any additional training procedure.
+1. Open a terminal or use the Anaconda prompt (Windows) and activate your virtual environment (e.g., ```conda activate fl-cs```)
+2. Navigate to the folder in which the ```evaluate_externally.py``` script is located (e.g., ```cd your-path/federated-learning-connected-speech/src/fl_connected_speech```)
+3. Start the client (e.g., ```python client.py```). **A log file called `external_results.log`` will be created automatically in data/output/.**
+
+## Local Evaluation
+The general idea is to investigate whether the performance of a federated learning-based model can outperform local models that are only trained on the data from each site. To measure the performance of these local models, you can run the ``client_evaluate_locally.py`` script:
+1. Open a terminal or use the Anaconda prompt (Windows) and activate your virtual environment (e.g., ```conda activate fl-cs```)
+2. Navigate to the folder in which the ```client_evaluate_locally.py``` script is located (e.g., ```cd your-path/federated-learning-connected-speech/src/fl_connected_speech```)
+3. Start the local evaluation (e.g., ```python client_evaluate_locally.py```). **A log file called ``client_local_results.log`` will be created automatically in data/output/.**
 
 ## Starting the Client
 1. Open a terminal or use the Anaconda prompt (Windows) and activate your virtual environment (e.g., ```conda activate fl-cs```)
@@ -49,8 +61,3 @@ grpc._channel._MultiThreadedRendezvous: <_MultiThreadedRendezvous of RPC that te
 ... 
 Failed to connect to remote host: Connection refused
 ```
-## Additional Local Evaluation 
-The general idea is to investigate whether the performance of a federated learning-based model can outperform local models that are only trained on the data from each site. To measure the performance of these local models, you can run the ``client_evaluate_locally.py`` script:
-1. If not already done: Open a terminal or use the Anaconda prompt (Windows) and activate your virtual environment (e.g., ```conda activate fl-cs```)
-2. Navigate to the folder in which the ```client_evaluate_locally.py``` script is located (e.g., ```cd your-path/federated-learning-connected-speech/src/fl_connected_speech```)
-3. Start the local evaluation (e.g., ```python client_evaluate_locally.py```). **A log file called ``client_local_results.log`` will be created automatically in data/output/.**
