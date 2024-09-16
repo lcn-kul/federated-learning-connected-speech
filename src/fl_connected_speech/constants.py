@@ -24,6 +24,7 @@ EXTERNAL_PREPROCESSING_SCRIPT = os.path.join(SRC_DIR, "server_preprocess_externa
 
 # Model, device and data details
 MODEL_BASE = "nreimers/mMiniLMv2-L6-H384-distilled-from-XLMR-Large"
+FL_MODEL_BASE = "helena-balabin/picture-description-fl-mMiniLMv2-L6-H384-distilled-from-XLMR-Large"
 DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 BATCH_SIZE = 8
 # recall = sensitivity, precision = positive predictive value

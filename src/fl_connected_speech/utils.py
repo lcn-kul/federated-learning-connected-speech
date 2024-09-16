@@ -144,7 +144,7 @@ def load_data():
     return loaders[0], loaders[1]
 
 
-def initialize_cls_model():
+def initialize_cls_model(model_base=MODEL_BASE):
     """Initialize the classification model with partially frozen layers."""
     cls_model = AutoModelForSequenceClassification.from_pretrained(
         MODEL_BASE,
