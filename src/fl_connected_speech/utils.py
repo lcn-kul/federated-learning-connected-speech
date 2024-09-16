@@ -150,7 +150,7 @@ def load_data():
 def initialize_cls_model(model_base=MODEL_BASE):
     """Initialize the classification model with partially frozen layers."""
     cls_model = AutoModelForSequenceClassification.from_pretrained(
-        MODEL_BASE,
+        model_base,
         num_labels=len(LABELS),
     ).to(DEVICE)
     NUM_LAYERS = len(cls_model.roberta.encoder.layer)
