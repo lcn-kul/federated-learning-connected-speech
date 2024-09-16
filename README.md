@@ -25,18 +25,18 @@ The easiest way to get Python and a virtual environment manager is by installing
 Here, the idea is to test a model that has been trained on several languages in a federated learning setup on a previously unseen dataset without any additional training procedure.
 1. Open a terminal or use the Anaconda prompt (Windows) and activate your virtual environment (e.g., ```conda activate fl-cs```)
 2. Navigate to the folder in which the ```evaluate_externally.py``` script is located (e.g., ```cd your-path/federated-learning-connected-speech/src/fl_connected_speech```)
-3. Start the client (e.g., ```python client.py```). **A log file called `external_results.log`` will be created automatically in data/output/.**
+3. Start the client (e.g., ```python client.py```). **A log file called ```external_results.log``` will be created automatically in data/output/.**
 
 ## Local Evaluation
 The general idea is to investigate whether the performance of a federated learning-based model can outperform local models that are only trained on the data from each site. To measure the performance of these local models, you can run the ``client_evaluate_locally.py`` script:
 1. Open a terminal or use the Anaconda prompt (Windows) and activate your virtual environment (e.g., ```conda activate fl-cs```)
 2. Navigate to the folder in which the ```client_evaluate_locally.py``` script is located (e.g., ```cd your-path/federated-learning-connected-speech/src/fl_connected_speech```)
-3. Start the local evaluation (e.g., ```python client_evaluate_locally.py```). **A log file called ``client_local_results.log`` will be created automatically in data/output/.**
+3. Start the local evaluation (e.g., ```python client_evaluate_locally.py```). **A log file called ```client_local_results.log``` will be created automatically in data/output/.**
 
 ## Starting the Client
 1. Open a terminal or use the Anaconda prompt (Windows) and activate your virtual environment (e.g., ```conda activate fl-cs```)
 2. Navigate to the folder in which the ```client.py``` script is located (e.g., ```cd your-path/federated-learning-connected-speech/src/fl_connected_speech```)
-3. Start the client (e.g., ```python client.py```). **A log file called `client.log`` will be created automatically in data/output/.**
+3. Start the client (e.g., ```python client.py```). **A log file called ```client.log``` will be created automatically in data/output/.**
 
 Ideally, the client should be started in the background, as it will need to stay running until the federated learning rounds are completed (e.g., through ```nohup``` or ```screen``` on Linux, possibly ```start``` on Windows).
 
