@@ -117,29 +117,32 @@ def load_data():
             # Add to list of datasets
             raw_datasets.append(label_specific_dataset)
 
-        # Concatenate all datasets into one
-        raw_dataset = concatenate_datasets(raw_datasets)
-        # Shuffle the entries
-        raw_dataset = raw_dataset.shuffle(seed=42)
+        if len(raw_datasets) > 0:
+            # Concatenate all datasets into one
+            raw_dataset = concatenate_datasets(raw_datasets)
+            # Shuffle the entries
+            raw_dataset = raw_dataset.shuffle(seed=42)
 
-        # Add label column
-        raw_dataset = raw_dataset.cast_column("labels", ClassLabel(num_classes=len(LABELS), names=LABELS))
+            # Add label column
+            raw_dataset = raw_dataset.cast_column("labels", ClassLabel(num_classes=len(LABELS), names=LABELS))
 
-        # Tokenize the dataset
-        tokenized_dataset = raw_dataset.map(
-            lambda examples: tokenizer(examples["text"], truncation=True), batched=True,
-        )
-        tokenized_dataset = tokenized_dataset.remove_columns("text")
-
-        data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
-        loaders.append(
-            DataLoader(
-                tokenized_dataset,
-                shuffle=True,
-                batch_size=BATCH_SIZE,
-                collate_fn=data_collator,
+            # Tokenize the dataset
+            tokenized_dataset = raw_dataset.map(
+                lambda examples: tokenizer(examples["text"], truncation=True), batched=True,
             )
-        )
+            tokenized_dataset = tokenized_dataset.remove_columns("text")
+
+            data_collator = DataCollatorWithPadding(tokenizer=tokenizer)
+            loaders.append(
+                DataLoader(
+                    tokenized_dataset,
+                    shuffle=True,
+                    batch_size=BATCH_SIZE,
+                    collate_fn=data_collator,
+                )
+            )
+        else:
+            loaders.append(None)
 
     return loaders[0], loaders[1]
 
