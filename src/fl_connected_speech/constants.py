@@ -14,6 +14,9 @@ DATA_DIR = os.path.join(os.sep.join(PROJECT_DIR.split(os.sep)[:-1]), "data")
 INPUT_DIR = os.path.join(DATA_DIR, "input")
 OUTPUT_DIR = os.path.join(DATA_DIR, "output")
 EXTERNAL_DIR = os.path.join(DATA_DIR, "external")
+# Create the directories if they do not exist
+for d in [DATA_DIR, INPUT_DIR, OUTPUT_DIR, EXTERNAL_DIR]:
+    os.makedirs(d, exist_ok=True)
 
 # Server details
 SERVER_DETAILS_PATH = os.path.join(os.sep.join(PROJECT_DIR.split(os.sep)[:-1]), "server_details.env")
