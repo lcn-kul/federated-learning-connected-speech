@@ -1,7 +1,7 @@
 # Federated Learning for Connected Speech
 Federated learning for the classification of various neurodegenerative diseases based on transcribed speech data from continuous speech.
 
-![INCLUDE_flwr_connected_speech](https://github.com/lcn-kul/federated-learning-connected-speech/assets/79714136/70dda522-95b4-42cf-a7f6-d724529c77c3)
+![Overview_Figure_Multilingual_Connected_Speech_v1](https://github.com/user-attachments/assets/65bff8b1-9352-4beb-935b-a58f693a6e88)
 
 ## Prerequisites 
 * Git (e.g., [GitHub Desktop](https://desktop.github.com/))
